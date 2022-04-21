@@ -53,13 +53,13 @@ Column {data-width=500, .tabset}
 ### Line Chart
 
 ```{r}
-CK_tweets <- tibble(readRDS(file = "data/PC_tweets.rds"))
+PC_tweets <- tibble(readRDS(file = "data/PC_tweets.rds"))
 
-#CK_tweets
+#PC_tweets
 
 # Execute the following code to plot the count of tweets over the years by breaking down into months:
   
-ggplot(data = CK_tweets,aes(month(created_at, label=TRUE, abbr=TRUE),
+ggplot(data = PC_tweets,aes(month(created_at, label=TRUE, abbr=TRUE),
                                  group=factor(year(created_at)), color=factor(year(created_at))))+
   geom_line(stat="count") +
   geom_point(stat="count") +
@@ -71,7 +71,7 @@ ggplot(data = CK_tweets,aes(month(created_at, label=TRUE, abbr=TRUE),
 ### Line Chart (facet wrap)
 
 ```{r}
-ggplot(data = CK_tweets,aes(month(created_at, label=TRUE, abbr=TRUE),
+ggplot(data = PC_tweets,aes(month(created_at, label=TRUE, abbr=TRUE),
                               group=factor(year(created_at)), color=factor(year(created_at))))+
   geom_line(stat="count") +
   geom_point(stat="count",size=1) +
@@ -85,7 +85,7 @@ ggplot(data = CK_tweets,aes(month(created_at, label=TRUE, abbr=TRUE),
 ### Bar Chart
 
 ```{r}
-CK_tweets %>% as.data.frame() %>% 
+PC_tweets %>% as.data.frame() %>% 
     select(user_id,source) %>% count(source) %>% 
     ggplot(aes(source,n)) + 
     geom_col(aes(fill = source)) + 
@@ -100,7 +100,7 @@ CK_tweets %>% as.data.frame() %>%
 ### Bar Chart 2
 
 ```{r}
-    CK_tweets %>% as.data.frame() %>% 
+    PC_tweets %>% as.data.frame() %>% 
       select(created_at) %>% format(format = "%Y") %>% count(created_at) %>% 
       ggplot(aes(factor(created_at),n)) + 
       geom_col(aes(fill = created_at)) + 
@@ -113,7 +113,7 @@ CK_tweets %>% as.data.frame() %>%
 ### Bar Chart 3
 
 ```{r}
-    CK_tweets %>% as.data.frame() %>% 
+    PC_tweets %>% as.data.frame() %>% 
       select(created_at) %>% format(format = "%H") %>% count(created_at) %>% 
       ggplot(aes(factor(created_at),n)) + 
       geom_col(fill = "#E7B800") + 
@@ -126,7 +126,7 @@ CK_tweets %>% as.data.frame() %>%
 
 ```{r}
  #retweets over time
-    CK_tweets %>% as.data.frame() %>% 
+    PC_tweets %>% as.data.frame() %>% 
       select(retweet_count,created_at) %>% 
       as.data.frame() %>% 
     ggplot(aes(x = created_at, y = retweet_count)) +
@@ -142,7 +142,7 @@ CK_tweets %>% as.data.frame() %>%
 # Text mining
 
 ```{r}
-text_words <- CK_tweets %>% 
+text_words <- PC_tweets %>% 
   select(created_at, favorite_count, retweet_count, text) %>% 
   unnest_tokens(word, text) %>% 
   anti_join(stop_words, by = "word") %>% 
