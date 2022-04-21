@@ -1,0 +1,173 @@
+---
+title: "Precision Sarcoma Research @ DFKZ Tweet Analysis"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    theme: united
+    vertical_layout: fill
+    social: menu
+    source_code: embed
+    runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(ggplot2)
+library(lubridate)
+library(tidytext)
+library(wordcloud)
+```
+
+# Introduction
+
+Column {data-width=500, .tabset}
+-----------------------------------------------------------------------
+
+### Example tweet {data-width=500, .tabset}
+
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">Calling all <a href="https://twitter.com/hashtag/ewing?src=hash&amp;ref_src=twsrc%5Etfw">#ewing</a> <a href="https://twitter.com/hashtag/sarcoma?src=hash&amp;ref_src=twsrc%5Etfw">#sarcoma</a> researchers! Check out this fantastic resource to explore w/wo fusion-gene scenario in at least 5 dimensions in 18 EWS cell lines! Great effort by <a href="https://twitter.com/GrunewaldLab?ref_src=twsrc%5Etfw">@GrunewaldLab</a> and colleagues! <a href="https://t.co/G9cmFZjXrv">https://t.co/G9cmFZjXrv</a></p>&mdash; Priya Chudasama (@priyachudasama5) <a href="https://twitter.com/priyachudasama5/status/1402673839314804740?ref_src=twsrc%5Etfw">June 9, 2021</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+### Shiny Apps
+
+* [Tweet Data Analysis](https://github.com/ramadatta/Tweet_data/blob/main/PC_Lab.Rmd/)
+* Other R shiny apps
+
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">⚡️☀️I built a tiny shiny app &quot;RoaryPCA&quot; using flexdashboard to plot PCA from Roary gene presence absence file and its transpose. Deployed using a <a href="https://t.co/UaNSsTZEXC">https://t.co/UaNSsTZEXC</a>. <br>Check it out here: <a href="https://t.co/Q5EePB6nCW">https://t.co/Q5EePB6nCW</a><a href="https://twitter.com/hashtag/rstats?src=hash&amp;ref_src=twsrc%5Etfw">#rstats</a> <a href="https://twitter.com/hashtag/R?src=hash&amp;ref_src=twsrc%5Etfw">#R</a> <a href="https://twitter.com/hashtag/flexdashboard?src=hash&amp;ref_src=twsrc%5Etfw">#flexdashboard</a> <a href="https://twitter.com/hashtag/roary?src=hash&amp;ref_src=twsrc%5Etfw">#roary</a> <a href="https://twitter.com/hashtag/r4ds?src=hash&amp;ref_src=twsrc%5Etfw">#r4ds</a> <a href="https://twitter.com/hashtag/Bioinformatics?src=hash&amp;ref_src=twsrc%5Etfw">#Bioinformatics</a> <a href="https://t.co/NwVf3zN8LL">pic.twitter.com/NwVf3zN8LL</a></p>&mdash; Prakki Sai Rama Sridatta శ్రీదత్త (@Prakki_Rama) <a href="https://twitter.com/Prakki_Rama/status/1514128008487268352?ref_src=twsrc%5Etfw">April 13, 2022</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+
+### Motivation
+
+* Learn about twitter data analysis
+* Exploring patterns and trends to gains insights regarding tweets and popularity.
+* To explore R packages
+  + First time: `rtweet`, `tidytext`
+  + Continued learning: `tidyverse`, `wordcloud`, `forcats`, `flexdashboard`, `lubridate`, `ggplot2`
+  
+
+# Visualizations
+
+Column {data-width=500, .tabset}
+-----------------------------------------------------------------------
+
+### Line Chart
+
+```{r}
+CK_tweets <- tibble(readRDS(file = "data/PC_tweets.rds"))
+
+#CK_tweets
+
+# Execute the following code to plot the count of tweets over the years by breaking down into months:
+  
+ggplot(data = CK_tweets,aes(month(created_at, label=TRUE, abbr=TRUE),
+                                 group=factor(year(created_at)), color=factor(year(created_at))))+
+  geom_line(stat="count") +
+  geom_point(stat="count") +
+  labs(x="Month", colour="Year") +
+  xlab("Month") + ylab("Number of tweets") +
+  theme_minimal()
+```
+
+### Line Chart (facet wrap)
+
+```{r}
+ggplot(data = CK_tweets,aes(month(created_at, label=TRUE, abbr=TRUE),
+                              group=factor(year(created_at)), color=factor(year(created_at))))+
+  geom_line(stat="count") +
+  geom_point(stat="count",size=1) +
+  theme_bw()+
+  theme(legend.position="right", axis.text.x = element_text(angle = 90, hjust = 1, size = 6), axis.text.y = element_text(angle = 0, hjust = 1, size = 5)) +
+  labs(x="Month", y="Number of tweets", title = "CKLab tweets by year") +
+  facet_wrap(.~year(created_at))
+```
+
+
+### Bar Chart
+
+```{r}
+CK_tweets %>% as.data.frame() %>% 
+    select(user_id,source) %>% count(source) %>% 
+    ggplot(aes(source,n)) + 
+    geom_col(aes(fill = source)) + 
+    scale_fill_manual(values = c("#00AFBB", "#E7B800", "#FC4E07")) +
+    theme_minimal() +
+   theme(legend.position="right", axis.text.x = element_text(angle = 90, hjust = 1, size = 6), axis.text.y = element_text(angle = 0, hjust = 1, size = 5)) +
+  labs(x="Device", colour="Year",
+       y="Number of tweets",
+       title = "Android vs Web App")
+```
+
+### Bar Chart 2
+
+```{r}
+    CK_tweets %>% as.data.frame() %>% 
+      select(created_at) %>% format(format = "%Y") %>% count(created_at) %>% 
+      ggplot(aes(factor(created_at),n)) + 
+      geom_col(aes(fill = created_at)) + 
+      #scale_fill_manual(values = c("#00AFBB", "#E7B800", "#FC4E07")) +
+      theme_minimal() +
+      labs(x = "Year", y = "Counts", 
+           title = "Number of tweets per year") 
+```
+
+### Bar Chart 3
+
+```{r}
+    CK_tweets %>% as.data.frame() %>% 
+      select(created_at) %>% format(format = "%H") %>% count(created_at) %>% 
+      ggplot(aes(factor(created_at),n)) + 
+      geom_col(fill = "#E7B800") + 
+      theme_minimal() +
+      labs(x = "Year", y = "Counts", 
+           title = "Number of tweets per hour over 2018-2020")   
+```
+ 
+### Scatter Plot
+
+```{r}
+ #retweets over time
+    CK_tweets %>% as.data.frame() %>% 
+      select(retweet_count,created_at) %>% 
+      as.data.frame() %>% 
+    ggplot(aes(x = created_at, y = retweet_count)) +
+      geom_point(colour = "navyblue", alpha = 0.5, size = 1) +
+      geom_smooth(se = FALSE, colour = "orange", alpha = 0.5) +
+      scale_y_continuous(trans='log2') +
+      theme_minimal()  +
+      labs(x = "Date", y = "# retweets (log transformed)", 
+           title = "Number of retweets of tweets over time") 
+```
+
+
+# Text mining
+
+```{r}
+text_words <- CK_tweets %>% 
+  select(created_at, favorite_count, retweet_count, text) %>% 
+  unnest_tokens(word, text) %>% 
+  anti_join(stop_words, by = "word") %>% 
+  filter(!(word %in% c("t.co", "http", "https", "amp", "rt")),
+         str_detect(word, "[a-z]"))
+
+text_words_popularity <- text_words %>% 
+  add_count(word) %>% 
+  group_by(word) %>% 
+  summarize(median_likes = median(favorite_count),
+            median_retweets = median(retweet_count),
+            total_likes = sum(favorite_count),
+            total_retweets = sum(retweet_count),
+            geom_mean_likes = exp(mean(log(favorite_count + 1))) - 1,
+            geom_mean_retweets = exp(mean(log(retweet_count + 1))) - 1,
+            mean_likes = mean(favorite_count),
+            mean_retweets = mean(retweet_count),
+            occurrences = n()) %>% 
+  arrange(desc(occurrences)) 
+
+set.seed(1234)
+wordcloud(words = text_words_popularity$word, freq = text_words_popularity$occurrences, min.freq = 1,
+          max.words=200, random.order=FALSE, rot.per=0.35, 
+          colors=brewer.pal(8, "Dark2"))
+
+```
+
+# Statistics
